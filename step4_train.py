@@ -91,30 +91,32 @@ def build_CNN():
     """
     # Input images and labels
     with tf.name_scope("Input"):
-        x = tf.placeholder(tf.float32, shape=[None, WIDTH * HEIGHT])
+        x = tf.placeholder(tf.float32, shape=[None, IMAGE_ARRAY_SIZE])
         y_ = tf.placeholder(tf.int32, shape=[None, proj_constants.CLASSES])
         x_image = tf.reshape(x, [-1, WIDTH, HEIGHT, 3])
 
     # 1st layer
     with tf.name_scope("Layer1"):
-        W_conv1 = weight_variable([5, 5, 1, IMAGE_ARRAY_SIZE/2])
-        b_conv1 = bias_variable([IMAGE_ARRAY_SIZE/2])
+        layer1_size = 32
+        W_conv1 = weight_variable([5, 5, 3, layer1_size])
+        b_conv1 = bias_variable([layer1_size])
         h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
         h_pool1 = max_pool_2x2(h_conv1)
 
     # 2nd layer
     with tf.name_scope("Layer2"):
-        W_conv2 = weight_variable([5, 5, IMAGE_ARRAY_SIZE/2, IMAGE_ARRAY_SIZE])
-        b_conv2 = bias_variable([IMAGE_ARRAY_SIZE])
+        layer2_size = 64
+        W_conv2 = weight_variable([5, 5, layer1_size, layer2_size])
+        b_conv2 = bias_variable([layer2_size])
         h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)
         h_pool2 = max_pool_2x2(h_conv2)
 
         # image size would have reduced by a factor of 4. Of course we have to account for all the channels too
-        h_pool2_flat = tf.reshape(h_pool2, [-1, int(WIDTH / 4) * int(HEIGHT / 4) * IMAGE_ARRAY_SIZE])
+        h_pool2_flat = tf.reshape(h_pool2, [-1, int(WIDTH / 4) * int(HEIGHT / 4) * layer2_size])
 
     # 3rd layer
     with tf.name_scope("Layer3"):
-        W_fc1 = weight_variable([int(WIDTH / 4) * int(HEIGHT / 4) * IMAGE_ARRAY_SIZE, 1024])
+        W_fc1 = weight_variable([int(WIDTH / 4) * int(HEIGHT / 4) * layer2_size, 1024])
         b_fc1 = bias_variable([1024])
         h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
         keep_prob = tf.placeholder(tf.float32)
@@ -125,13 +127,15 @@ def build_CNN():
         W_fc2 = weight_variable([1024, proj_constants.CLASSES])
         b_fc2 = bias_variable([proj_constants.CLASSES])
         y_conv = tf.nn.softmax(tf.matmul(h_fc1_drop, W_fc2) + b_fc2)
+        print("y_conv")
+        print(y_conv)
 
     with tf.name_scope("CrossEntropy"):
         cross_entropy = tf.reduce_mean(-tf.reduce_sum(tf.cast(y_, tf.float32) * tf.log(y_conv), reduction_indices=[1]))
         tf.scalar_summary("Cross Entropy", cross_entropy)
 
     with tf.name_scope("Train"):
-        train_step = tf.train.AdamOptimizer(LEARNING_RATE).minimize(cross_entropy)
+        train_step = tf.train.GradientDescentOptimizer(LEARNING_RATE).minimize(cross_entropy)
 
     with tf.name_scope("CorrectPrediction"):
         correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
@@ -214,7 +218,7 @@ def train_CNN():
                 label_vectors = proj_constants.to_label_vectors(labels_eval)
                 train_step.run(feed_dict={x: images_eval, y_: label_vectors, keep_prob: 0.5})
 
-                if step_num % 50 == 0:
+                if step_num % 5 == 0:
                     # Evaluate train accuracy every 10th step
                     summary, train_accuracy = sess.run([merge_summary, accuracy], feed_dict={x: images_eval, y_: label_vectors, keep_prob: 1.0})
                     train_writer.add_summary(summary, step_num)

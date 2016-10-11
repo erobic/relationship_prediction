@@ -74,7 +74,7 @@ annotation_train_json = json.load(codecs.open(os.path.join(proj_constants.DATA_D
 annotation_train_data = annotation_train_json['values']
 for i in xrange(0, len(annotation_train_data)):
     if i % 500 == 0:
-        print "Resizing train image#: %d"%i
+        print "Resizing train image#: %d" % i
     old_file = os.path.join(proj_constants.DATA_DIR, 'train_images_orig', annotation_train_data[i]['filename'])
     new_file = os.path.join(proj_constants.DATA_DIR, 'train_images', annotation_train_data[i]['filename'])
     preprocess(annotation_train_data[i], old_file, new_file)
@@ -84,7 +84,7 @@ annotation_test_json = json.load(codecs.open(os.path.join(proj_constants.DATA_DI
 annotation_test_data = annotation_test_json['values']
 for i in xrange(0, len(annotation_test_data)):
     if i % 500 == 0:
-        print "Resizing test image#: %d"%i
+        print "Resizing test image#: %d" % i
     old_file = os.path.join(proj_constants.DATA_DIR, 'test_images_orig', annotation_test_data[i]['filename'])
     new_file = os.path.join(proj_constants.DATA_DIR, 'test_images', annotation_test_data[i]['filename'])
     preprocess(annotation_test_data[i], old_file, new_file)

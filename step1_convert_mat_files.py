@@ -2,9 +2,10 @@ import scipy.io as scio
 import json
 import codecs
 import os
+import proj_constants
 
 """Script to read .mat files and convert them to more convenient formats for further usage"""
-predicate_mat = scio.loadmat(os.path.join('data', 'predicate.mat'), struct_as_record=False)
+predicate_mat = scio.loadmat(os.path.join(proj_constants.DATA_DIR, 'predicate.mat'), struct_as_record=False)
 predicate_array = predicate_mat['predicate'][0, :].tolist()
 
 
@@ -46,7 +47,7 @@ def save_annotation_data(input_file, input_key, output_file):
     json_data['values'] = formatted_data
     json.dump(json_data, codecs.open(output_file, 'w', encoding='utf-8'))
 
-save_annotation_data(os.path.join('data', 'annotation_test.mat'), 'annotation_test',
-                     os.path.join('data', 'annotation_test.json'))
-save_annotation_data(os.path.join('data', 'annotation_train.mat'), 'annotation_train',
-                     os.path.join('data', 'annotation_train.json'))
+save_annotation_data(os.path.join(proj_constants.DATA_DIR, 'annotation_test.mat'), 'annotation_test',
+                     os.path.join(proj_constants.DATA_DIR, 'annotation_test.json'))
+save_annotation_data(os.path.join(proj_constants.DATA_DIR, 'annotation_train.mat'), 'annotation_train',
+                     os.path.join(proj_constants.DATA_DIR, 'annotation_train.json'))

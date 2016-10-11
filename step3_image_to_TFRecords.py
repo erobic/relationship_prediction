@@ -7,7 +7,7 @@ import tensorflow as tf
 import threading
 
 IMAGE_SHAPE = 2*proj_constants.WIDTH*proj_constants.HEIGHT
-LABEL_SIZE = 70
+CLASSES = proj_constants.CLASSES
 
 train_data = json.load(codecs.open(os.path.join(proj_constants.DATA_DIR, 'annotation_train.json'),
                                    'r', encoding='utf-8'))['values']
@@ -56,7 +56,7 @@ def data_to_tfrecords(image_filenames, labels, tfrecords_file):
 
         for i in xrange(len(image_filenames)):
             image = decoded_img.eval()
-            image = image*(1./255.)
+            image = image * (1./255.)
             image_raw = image.tostring()
 
             example = tf.train.Example(features=tf.train.Features(feature={
@@ -75,6 +75,7 @@ def write_tfrecords():
     # Create separate tfrecords file for each training example
     train_filenames = extract_filenames(train_data)
     train_labels = extract_labels(train_data)
+    print("No. of training files: %d, No. of training labels: %d" % (len(train_filenames), len(train_labels)))
     for i in xrange(len(train_filenames)):
         curr_train_file = os.path.join(proj_constants.DATA_DIR, "train_images", train_filenames[i])
         train_tfrecords_file = os.path.join(proj_constants.DATA_DIR, "train_tfrecords", train_filenames[i]+'.tfrecords')
@@ -87,14 +88,14 @@ def write_tfrecords():
     # Create separate tfrecords file for each test example
     test_filenames = extract_filenames(test_data)
     test_labels = extract_labels(test_data)
-    for i in xrange(len(test_filenames)):
-        curr_test_file = os.path.join(proj_constants.DATA_DIR, "test_images", test_filenames[i])
-        test_tfrecords_file = os.path.join(proj_constants.DATA_DIR, "test_tfrecords", test_filenames[i]+'.tfrecords')
-        curr_test_label = test_labels[i]
+    for j in xrange(len(test_filenames)):
+        curr_test_file = os.path.join(proj_constants.DATA_DIR, "test_images", test_filenames[j])
+        test_tfrecords_file = os.path.join(proj_constants.DATA_DIR, "test_tfrecords", test_filenames[j]+'.tfrecords')
+        curr_test_label = test_labels[j]
         test_thr = threading.Thread(target=data_to_tfrecords,
                                      args=([curr_test_file], [curr_test_label], test_tfrecords_file), kwargs={})
-        if i % 500 == 0:
-            print("Converting %d th test image to tfrecords\n" % i)
+        if j % 500 == 0:
+            print("Converting %d th test image to tfrecords\n" % j)
         test_thr.start()
 
 write_tfrecords()

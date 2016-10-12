@@ -13,9 +13,9 @@ HEIGHT = proj_constants.HEIGHT
 IMAGE_ARRAY_SIZE = 3 * WIDTH * HEIGHT
 TFRECORDS_TRAIN_DIR = os.path.join(proj_constants.DATA_DIR, 'train_tfrecords')
 TFRECORDS_TEST_DIR = os.path.join(proj_constants.DATA_DIR, 'test_tfrecords')
-BATCH_SIZE = 140
-EPOCHS = 10
-LEARNING_RATE = 1e-3
+BATCH_SIZE = 500
+EPOCHS = 1
+LEARNING_RATE = 5e-5
 SUMMARIES_DIR = os.path.join(proj_constants.DATA_DIR, 'summary')
 TRAIN_SUMMARY_DIR = os.path.join(SUMMARIES_DIR, 'train')
 TEST_SUMMARY_DIR = os.path.join(SUMMARIES_DIR, 'test')
@@ -112,13 +112,25 @@ def build_CNN():
         h_pool2 = max_pool_2x2(h_conv2)
 
         # image size would have reduced by a factor of 4. Of course we have to account for all the channels too
-        h_pool2_flat = tf.reshape(h_pool2, [-1, int(WIDTH / 4) * int(HEIGHT / 4) * layer2_size])
+        # h_pool2_flat = tf.reshape(h_pool2, [-1, int(WIDTH / 4) * int(HEIGHT / 4) * layer2_size])
+
+    image_reduction_factor = 8
+    # Layer
+    with tf.name_scope("Layer3"):
+        layer3_size = 64
+        W_conv3 = weight_variable([5, 5, layer2_size, layer3_size])
+        b_conv3 = bias_variable([layer3_size])
+        h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3) + b_conv3)
+        h_pool3 = max_pool_2x2(h_conv3)
+
+        # image size would have reduced by a factor of 4. Of course we have to account for all the channels too
+        h_pool3_flat = tf.reshape(h_pool3, [-1, int(WIDTH / image_reduction_factor) * int(HEIGHT / image_reduction_factor) * layer3_size])
 
     # 3rd layer
-    with tf.name_scope("Layer3"):
-        W_fc1 = weight_variable([int(WIDTH / 4) * int(HEIGHT / 4) * layer2_size, 1024])
+    with tf.name_scope("Layer4"):
+        W_fc1 = weight_variable([int(WIDTH / image_reduction_factor) * int(HEIGHT / image_reduction_factor) * layer3_size, 1024])
         b_fc1 = bias_variable([1024])
-        h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
+        h_fc1 = tf.nn.relu(tf.matmul(h_pool3_flat, W_fc1) + b_fc1)
         keep_prob = tf.placeholder(tf.float32)
         h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 

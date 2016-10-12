@@ -1,7 +1,2 @@
 .idea
-data/test_images
-data/train_images
-data/test_tfrecords
-data/train_tfrecords
-data/test_images_orig
-data/train_images_orig
+data
